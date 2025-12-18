@@ -119,7 +119,8 @@ class RAGPipeline:
             chunk_id = doc.metadata.get('chunk_id', 'N/A')
             content = doc.page_content
             similarity = max(0.0, 1.0 - float(score))
-            sources.append((source, page, similarity, chunk_id, content))
+            relevance_percentage = similarity * 100
+            sources.append((source, page, relevance_percentage, chunk_id, content))
         
         avg_score = sum(score for _, score in retrieved_docs) / len(retrieved_docs)
         similarity_score = max(0.0, 1.0 - avg_score)

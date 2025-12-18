@@ -502,7 +502,7 @@ else:
                                     <div class="source-card-meta">
                                         <strong>Page:</strong> {src.get('page', 'N/A')} | 
                                         <strong>Chunk ID:</strong> {src.get('chunk_id', 'N/A')} | 
-                                        <strong>Relevance:</strong> {src.get('relevance', 0):.1%}
+                                        <strong>Relevance:</strong> {src.get('relevance', 0):.1f}%
                                     </div>
                                     <div class="source-card-content">
                                         {chunk_preview}
@@ -546,7 +546,7 @@ else:
                                     <div class="source-card-meta">
                                         <strong>Page:</strong> {src.page} | 
                                         <strong>Chunk ID:</strong> {chunk_id} | 
-                                        <strong>Relevance:</strong> {relevance:.1%}
+                                        <strong>Relevance:</strong> {relevance:.1f}%
                                     </div>
                                     <div class="source-card-content">
                                         {chunk_preview}
