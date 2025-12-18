@@ -1,21 +1,17 @@
-"""Enterprise RAG Assistant"""
 import streamlit as st
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 
-# Load environment
 load_dotenv()
 
-# Page configuration
 st.set_page_config(
     page_title="Enterprise RAG Assistant",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Futuristic Light CSS styling
 st.markdown("""
 <style>
     /* Import modern font */
@@ -317,18 +313,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Header
 st.markdown('<div class="main-header">Enterprise RAG Assistant</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Intelligent Document Analysis powered by OpenAI GPT-4o, ChromaDB, and LangChain</div>', unsafe_allow_html=True)
 
-# Check API key
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("**Configuration Required:** OpenAI API key not found. Please add your API key to the `.env` file.")
     st.code("OPENAI_API_KEY=your-api-key-here", language="bash")
     st.stop()
 
-# Initialize session state
 if 'rag_pipeline' not in st.session_state:
     st.session_state.rag_pipeline = None
 if 'chat_history' not in st.session_state:
@@ -336,9 +329,7 @@ if 'chat_history' not in st.session_state:
 if 'processing_complete' not in st.session_state:
     st.session_state.processing_complete = False
 
-# Sidebar
 with st.sidebar:
-    # Document Management at the top
     st.markdown('<div class="section-header">Document Management</div>', unsafe_allow_html=True)
     
     uploaded_files = st.file_uploader(
@@ -356,7 +347,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Database controls
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Reset DB", use_container_width=True, help="Clear all indexed documents"):
@@ -375,17 +365,14 @@ with st.sidebar:
     
     if process_btn and uploaded_files:
         try:
-            # Progress tracking
             progress_bar = st.progress(0)
             status_text = st.empty()
             
-            # Step 1: Import components
             status_text.text("Loading components...")
             progress_bar.progress(5)
             from src.ingestion import IngestionPipeline
             from src.vectorstore import VectorIndexer
             
-            # Step 2: Save files
             status_text.text(f"Saving {len(uploaded_files)} file(s)...")
             progress_bar.progress(15)
             upload_dir = "./data/documents"
@@ -402,13 +389,11 @@ with st.sidebar:
                     st.error(f"Error saving file '{f.name}': {str(file_error)}")
                     raise
             
-            # Step 3: Load and chunk documents
             status_text.text("Processing documents...")
             progress_bar.progress(30)
             ingestion = IngestionPipeline(chunk_size=1000, chunk_overlap=200)
             chunks = ingestion.process_documents(file_paths)
             
-            # Step 4: Initialize indexer
             status_text.text(f"Preparing vector store ({len(chunks)} chunks)...")
             progress_bar.progress(40)
             indexer = VectorIndexer(
@@ -418,20 +403,17 @@ with st.sidebar:
                 collection_name="enterprise_documents"
             )
             
-            # Step 5: Generate embeddings
             status_text.text(f"Generating embeddings ({len(chunks)} chunks)...")
             progress_bar.progress(50)
             try:
                 indexer.index_documents(chunks)
             except Exception as embed_error:
                 if "expecting embedding with dimension" in str(embed_error):
-                    # Dimension mismatch - clear and retry
                     status_text.text("Clearing old database due to dimension mismatch...")
                     import shutil
                     if os.path.exists("./chroma_db"):
                         shutil.rmtree("./chroma_db")
                     os.makedirs("./chroma_db", exist_ok=True)
-                    # Recreate indexer and retry
                     indexer = VectorIndexer(
                         api_key=api_key,
                         embedding_model="text-embedding-3-small",
@@ -443,14 +425,12 @@ with st.sidebar:
                 else:
                     raise
             
-            # Step 6: Initialize RAG pipeline
             status_text.text("Initializing pipeline...")
             progress_bar.progress(90)
             from src.rag_pipeline import RAGPipeline
             st.session_state.rag_pipeline = RAGPipeline(api_key=api_key)
             st.session_state.rag_pipeline.load_existing_index()
             
-            # Complete
             progress_bar.progress(100)
             status_text.text("Processing complete")
             st.session_state.processing_complete = True
@@ -468,7 +448,6 @@ with st.sidebar:
     
     st.divider()
     
-    # System Information
     st.markdown('<div class="section-header">System Information</div>', unsafe_allow_html=True)
     
     info_col1, info_col2 = st.columns(2)
@@ -487,9 +466,7 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-# Main content area
 if st.session_state.rag_pipeline is None:
-    # Welcome state
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
@@ -504,10 +481,8 @@ if st.session_state.rag_pipeline is None:
         """, unsafe_allow_html=True)
         
 else:
-    # Enterprise-grade chat interface
     st.markdown("---")
     
-    # Display chat history - Professional format
     if st.session_state.chat_history:
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
@@ -538,14 +513,11 @@ else:
     else:
         st.info("Start a conversation by asking a question below.")
     
-    # Query input
     if question := st.chat_input("Ask a question about your documents..."):
-        # User message
         st.session_state.chat_history.append({'role': 'user', 'content': question})
         with st.chat_message("user"):
             st.write(question)
         
-        # Assistant response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
