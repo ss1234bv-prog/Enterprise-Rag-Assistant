@@ -94,21 +94,8 @@ class RAGPipeline:
                 confidence=0.0
             )
         
-        similarity_threshold = self.settings.similarity_threshold
-        filtered_docs = []
-        for doc, score in retrieved_docs:
-            similarity = max(0.0, 1.0 - float(score))
-            if similarity >= similarity_threshold:
-                filtered_docs.append((doc, score, similarity))
-        
-        if not filtered_docs:
-            return create_rag_response(
-                answer="No relevant documents found for your query. The retrieved content does not match your question well enough.",
-                sources=[],
-                confidence=0.0
-            )
-        
-        docs_only = [doc for doc, _, _ in filtered_docs]
+        # Format context
+        docs_only = [doc for doc, score in retrieved_docs]
         context = self.retriever.format_retrieved_context(docs_only)
         
         # Generate response
@@ -126,15 +113,17 @@ class RAGPipeline:
         answer = self.output_parser.sanitize_response(answer)
         
         sources = []
-        for doc, score, similarity in filtered_docs:
+        for doc, score in retrieved_docs:
             source = doc.metadata.get('source', 'Unknown')
             page = doc.metadata.get('page', 'N/A')
             chunk_id = doc.metadata.get('chunk_id', 'N/A')
             content = doc.page_content
+            similarity = max(0.0, 1.0 - float(score))
             sources.append((source, page, similarity, chunk_id, content))
         
-        avg_similarity = sum(sim for _, _, sim in filtered_docs) / len(filtered_docs)
-        confidence = max(0.0, min(1.0, avg_similarity))
+        avg_score = sum(score for _, score in retrieved_docs) / len(retrieved_docs)
+        similarity_score = max(0.0, 1.0 - avg_score)
+        confidence = max(0.0, min(1.0, similarity_score))
         
         return create_rag_response(
             answer=answer,
