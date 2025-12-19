@@ -496,13 +496,14 @@ else:
                         with st.expander(f"View {len(msg['sources'])} Source Citation(s)", expanded=False):
                             for idx, src in enumerate(msg['sources'], 1):
                                 chunk_preview = src.get('content', '')[:250] + '...' if len(src.get('content', '')) > 250 else src.get('content', '')
-                                rel_score = round(src.get('relevance', 0), 1)
+                                rel_score = round(src.get('relevance', 0) / 100, 2)
                                 st.markdown(f"""
                                 <div class="source-card">
                                     <div class="source-card-title">Source {idx}: {src.get('source', 'Unknown')}</div>
                                     <div class="source-card-meta">
                                         <strong>Page:</strong> {src.get('page', 'N/A')} | 
-                                        <strong>Chunk ID:</strong> {src.get('chunk_id', 'N/A')}
+                                        <strong>Chunk ID:</strong> {src.get('chunk_id', 'N/A')} | 
+                                        <strong>Relevance:</strong> {rel_score}
                                     </div>
                                     <div class="source-card-content">
                                         {chunk_preview}
@@ -528,7 +529,7 @@ else:
                     if response.sources:
                         with st.expander(f"View {len(response.sources)} Source Citation(s)", expanded=True):
                             for idx, src in enumerate(response.sources, 1):
-                                relevance = round(src.relevance if src.relevance else 0.0, 1)
+                                relevance = round((src.relevance if src.relevance else 0.0) / 100, 2)
                                 chunk_id = getattr(src, 'chunk_id', 'N/A')
                                 content = getattr(src, 'content', '')
                                 chunk_preview = content[:250] + '...' if len(content) > 250 else content
@@ -537,7 +538,7 @@ else:
                                     'source': src.source,
                                     'page': src.page,
                                     'chunk_id': chunk_id,
-                                    'relevance': relevance,
+                                    'relevance': src.relevance if src.relevance else 0.0,
                                     'content': content
                                 })
                                 st.markdown(f"""
@@ -545,7 +546,8 @@ else:
                                     <div class="source-card-title">Source {idx}: {src.source}</div>
                                     <div class="source-card-meta">
                                         <strong>Page:</strong> {src.page} | 
-                                        <strong>Chunk ID:</strong> {chunk_id}
+                                        <strong>Chunk ID:</strong> {chunk_id} | 
+                                        <strong>Relevance:</strong> {relevance}
                                     </div>
                                     <div class="source-card-content">
                                         {chunk_preview}
