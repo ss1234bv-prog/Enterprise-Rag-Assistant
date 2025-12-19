@@ -118,7 +118,7 @@ class RAGPipeline:
             page = doc.metadata.get('page', 'N/A')
             chunk_id = doc.metadata.get('chunk_id', 'N/A')
             content = doc.page_content
-            similarity = max(0.0, min(1.0, 1.0 - float(score)))
+            similarity = 1.0 / (1.0 + float(score))
             relevance_percentage = round(similarity * 100, 1)
             sources.append((source, page, relevance_percentage, chunk_id, content))
         
